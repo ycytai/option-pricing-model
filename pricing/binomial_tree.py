@@ -1,36 +1,33 @@
 import numpy as np
-from pricing.common.enums import OptionType
-from pricing.common.base import PricingModel
-from pricing.common.exceptions import WrongOptionTypeException
+
+from common.enums import OptionType
+from common.exceptions import WrongOptionTypeException
+from common.utils import round_num
+from obj.base import Option
+from pricing.base import PricingModel
 
 
 class BinominalTreePricingModel(PricingModel):
-
     @classmethod
+    @round_num(digits=4)
     def calculate(
         cls,
-        s: float,
-        k: float,
-        t: float,
-        r: float,
-        v: float,
-        q: float,
-        n: int,
-        option_type: OptionType,
+        option: Option,
+        n: int = 100,
     ) -> float:
         """
         Parameters:
-            s: spot price
-            k: strike price
-            t: maturity (year)
-            r: interest rate
-            v: volatility
-            q: yield rate
-            n: periods
-            option_type: option type, use 'C' or 'P'
-
-        NOTE: European only
+            option (`Option`): option object
+            n (`int`): periods
         """
+
+        s = option.spot
+        k = option.strike
+        v = option.volatility
+        t = option.maturity
+        r = option.rate
+        q = option.yield_rate
+        option_type = option.option_type
 
         delta_t = t / n
         u = np.exp(v * np.sqrt(delta_t))

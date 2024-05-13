@@ -1,34 +1,28 @@
 import numpy as np
 import scipy.stats as st
-from pricing.common.enums import OptionType
-from pricing.common.base import PricingModel
-from pricing.common.exceptions import WrongOptionTypeException
+
+from common.enums import OptionType
+from common.exceptions import WrongOptionTypeException
+from common.utils import round_num
+from obj.base import Option
+from pricing.base import PricingModel
 
 
 class BlackScholesPricingModel(PricingModel):
-
     @classmethod
-    def calculate(
-        cls,
-        s: float, 
-        k: float, 
-        t: float,
-        r: float, 
-        v: float, 
-        q: float, 
-        option_type: str
-    ):
-
+    @round_num(digits=4)
+    def calculate(cls, option: Option):
         """
-        Parameters:
-            s: spot price
-            k: strike price
-            t: maturity (year)
-            r: interest rate
-            v: volatility
-            q: yield rate
-            option_type: option type, use 'C' or 'P'
+        Parameter:
+            option (`Option`): option object
         """
+        s = option.spot
+        k = option.strike
+        v = option.volatility
+        t = option.maturity
+        r = option.rate
+        q = option.yield_rate
+        option_type = option.option_type
 
         d1 = (np.log(s / k) + (r - q + v**2 / 2) * t) / (v * t**0.5)
         d2 = d1 - v * t**0.5

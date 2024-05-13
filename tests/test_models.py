@@ -1,54 +1,93 @@
-from pricing import BlackScholesPricingModel, BinominalTreePricingModel, TrinomialTreePricingModel, MonteCarloPricingModel
-import pytest
 import math
 
+import pytest
+
+from obj.base import Option
+from pricing import (
+    BinominalTreePricingModel,
+    BlackScholesPricingModel,
+    TrinomialTreePricingModel,
+)
+
+call_option_1 = Option(
+    spot=42,
+    strike=40,
+    maturity=0.5,
+    rate=0.1,
+    volatility=0.2,
+    yield_rate=0,
+    option_type='C',
+)
+
+call_option_2 = Option(
+    spot=810,
+    strike=800,
+    maturity=0.5,
+    rate=0.05,
+    volatility=0.2,
+    yield_rate=0.02,
+    option_type='C',
+)
+
+put_option_1 = Option(
+    spot=42,
+    strike=40,
+    maturity=0.5,
+    rate=0.1,
+    volatility=0.2,
+    yield_rate=0,
+    option_type='P',
+)
+
+put_option_2 = Option(
+    spot=50,
+    strike=50,
+    maturity=5 / 12,
+    rate=0.1,
+    volatility=0.4,
+    yield_rate=0,
+    option_type='P',
+)
 
 
 @pytest.mark.parametrize(
-    ['s', 'k', 't', 'r', 'v', 'q', 'option_type', 'expected_result'],
+    ['option', 'expected_result'],
     argvalues=[
-        pytest.param(42, 40, 0.5, 0.1, 0.2, 0, 'C', 4.76),
-        pytest.param(42, 40, 0.5, 0.1, 0.2, 0, 'P', 0.81),
-    ]
+        pytest.param(call_option_1, 4.76),
+        pytest.param(put_option_1, 0.81),
+    ],
 )
 def test_black_scholes_model(
-    s: float, k: float, t: float, r: float, 
-    v: float, q: float, option_type: str, expected_result: float
+    option: Option,
+    expected_result: float,
 ):
-    price = BlackScholesPricingModel.calculate(
-        s, k, t, r, v, q, option_type
-    )
+    price = BlackScholesPricingModel.calculate(option=option)
     assert math.isclose(round(price, 2), expected_result)
 
 
 @pytest.mark.parametrize(
-    ['s', 'k', 't', 'r', 'v', 'q', 'n', 'option_type', 'expected_result'],
-    argvalues=[
-        pytest.param(810, 800, 0.5, 0.05, 0.2, 0.02, 2, 'C', 53.39)
-    ]
+    ['option', 'expected_result'],
+    argvalues=[pytest.param(call_option_2, 53.39)],
 )
 def test_binominal_tree_model(
-    s: float, k: float, t: float, r: float, 
-    v: float, q: float, n:int, option_type: str, expected_result: float
+    option: Option,
+    expected_result: float,
 ):
-    price = BinominalTreePricingModel.calculate(
-        s, k, t, r, v, q, n, option_type
-    )
+    price = BinominalTreePricingModel.calculate(option=option, n=2)
     assert math.isclose(round(price, 2), expected_result)
 
 
 @pytest.mark.parametrize(
-    ['s', 'k', 't', 'r', 'v', 'q', 'n', 'option_type', 'expected_result'],
+    ['option', 'simulation_times', 'expected_result'],
     argvalues=[
-        pytest.param(810, 800, 0.5, 0.05, 0.2, 0.02, 2, 'C', 51.96),
-        pytest.param(50, 50, 5/12, 0.1, 0.4, 0, 5, 'P', 3.81)
-    ]
+        pytest.param(call_option_2, 2, 51.96),
+        pytest.param(put_option_2, 5, 3.81),
+    ],
 )
-def test_binominal_tree_model(
-    s: float, k: float, t: float, r: float, 
-    v: float, q: float, n:int, option_type: str, expected_result: float
+def test_trinomial_tree_model(
+    option: Option,
+    simulation_times: int,
+    expected_result: float,
 ):
-    price = TrinomialTreePricingModel.calculate(
-        s, k, t, r, v, q, n, option_type
-    )
+    price = TrinomialTreePricingModel.calculate(option=option, n=simulation_times)
     assert math.isclose(round(price, 2), expected_result)
